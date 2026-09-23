@@ -59,7 +59,14 @@ function splitTags(value: string) {
 }
 
 function AcademicPortfolio() {
-  const data = Route.useLoaderData();
+  const loaded = Route.useLoaderData() as
+    | { content?: Record<string, string>; bioRows?: any[]; resources?: any[] }
+    | undefined;
+  const data = {
+    content: loaded?.content ?? {},
+    bioRows: loaded?.bioRows ?? [],
+    resources: loaded?.resources ?? [],
+  };
   const [menuOpen, setMenuOpen] = useState(false);
   const [sent, setSent] = useState(false);
   const [sending, setSending] = useState(false);
