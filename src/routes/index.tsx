@@ -19,6 +19,7 @@ import { FormEvent, useState } from "react";
 
 import { Button } from "@/components/ui/button";
 import libraryImage from "@/assets/scholarly-library.jpg";
+import portraitPlaceholder from "@/assets/portrait-placeholder.jpg";
 import { getSiteData, sendMessage } from "@/lib/site.functions";
 
 export const Route = createFileRoute("/")({
@@ -164,7 +165,21 @@ function AcademicPortfolio() {
         </section>
 
         <section id="about" className="scroll-mt-18 bg-background py-20 sm:py-28">
-          <div className="mx-auto grid max-w-7xl gap-12 px-5 sm:px-8 lg:grid-cols-[0.9fr_1.1fr] lg:gap-20 lg:px-12">
+          <div className="mx-auto grid max-w-7xl gap-12 px-5 sm:px-8 lg:grid-cols-[0.62fr_1fr_1fr] lg:gap-14 lg:px-12">
+            <figure className="mx-auto w-full max-w-xs lg:sticky lg:top-24 lg:max-w-none">
+              <div className="relative">
+                <div aria-hidden className="absolute -bottom-3 -left-3 hidden size-full border border-accent sm:block" />
+                <img
+                  src={t("portrait_url", portraitPlaceholder)}
+                  alt={`Portrait of ${siteName}`}
+                  loading="lazy"
+                  width={912}
+                  height={1104}
+                  className="relative aspect-[4/5] w-full border border-border object-cover shadow-sm"
+                />
+              </div>
+              <figcaption className="mt-5 text-xs uppercase tracking-[0.18em] text-muted-foreground">{t("portrait_caption", siteName)}</figcaption>
+            </figure>
             <div>
               <SectionLabel number="01">About &amp; Bio-Data</SectionLabel>
               <h2 className="mt-5 max-w-xl font-serif text-3xl leading-tight sm:text-4xl">{t("about_heading", "A life dedicated to literature, inquiry, and the classroom.")}</h2>

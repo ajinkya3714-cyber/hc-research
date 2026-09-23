@@ -34,6 +34,18 @@ export const getSiteData = createServerFn({ method: "GET" }).handler(async (): P
   const content: Record<string, string> = {};
   for (const row of contentRes.data ?? []) content[row.key] = row.value;
 
+  if (content["portrait_path"]) {
+    try {
+      const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+      const { data } = await supabaseAdmin.storage
+        .from("portraits")
+        .createSignedUrl(content["portrait_path"], 60 * 60 * 24 * 7);
+      if (data?.signedUrl) content["portrait_url"] = data.signedUrl;
+    } catch {
+      /* portrait is optional */
+    }
+  }
+
   return {
     content,
     bioRows: bioRes.data ?? [],
