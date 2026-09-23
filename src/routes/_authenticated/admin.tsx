@@ -169,21 +169,101 @@ function ContentPanel({ data, onSaved }: { data: AdminData; onSaved: () => void 
   return (
     <Panel title="Page text" description="Edit every headline, paragraph and link shown on the public page.">
       <div className="grid gap-5">
-        {data.content.map((row) => (
-          <label key={row.key} className="grid gap-2 text-sm">
-            <span className="font-semibold text-primary">{row.label}</span>
-            {row.multiline ? (
-              <textarea rows={4} className={`${inputClass} resize-y`} value={values[row.key] ?? ""} onChange={(e) => setValues({ ...values, [row.key]: e.target.value })} />
-            ) : (
-              <input className={inputClass} value={values[row.key] ?? ""} onChange={(e) => setValues({ ...values, [row.key]: e.target.value })} />
-            )}
-          </label>
-        ))}
+        {data.content.map((row) =>
+          row.key === "portrait_path" ? (
+            <PortraitField
+              key={row.key}
+              label={row.label}
+              value={values[row.key] ?? ""}
+              onChange={(next) => setValues({ ...values, [row.key]: next })}
+            />
+          ) : (
+            <label key={row.key} className="grid gap-2 text-sm">
+              <span className="font-semibold text-primary">{row.label}</span>
+              {row.multiline ? (
+                <textarea rows={4} className={`${inputClass} resize-y`} value={values[row.key] ?? ""} onChange={(e) => setValues({ ...values, [row.key]: e.target.value })} />
+              ) : (
+                <input className={inputClass} value={values[row.key] ?? ""} onChange={(e) => setValues({ ...values, [row.key]: e.target.value })} />
+              )}
+            </label>
+          ),
+        )}
       </div>
       <Button className="mt-7" size="lg" disabled={!dirty || busy} onClick={submit}>
         {busy ? <Loader2 className="animate-spin" /> : <Check />} Save changes
       </Button>
     </Panel>
+  );
+}
+
+function PortraitField({ label, value, onChange }: { label: string; value: string; onChange: (next: string) => void }) {
+  const [preview, setPreview] = useState<string>("");
+  const [busy, setBusy] = useState(false);
+
+  useEffect(() => {
+    let active = true;
+    if (!value) {
+      setPreview("");
+      return;
+    }
+    supabase.storage
+      .from("portraits")
+      .createSignedUrl(value, 3600)
+      .then(({ data }) => {
+        if (active) setPreview(data?.signedUrl ?? "");
+      });
+    return () => {
+      active = false;
+    };
+  }, [value]);
+
+  const upload = async (file: File) => {
+    setBusy(true);
+    try {
+      const ext = file.name.split(".").pop()?.toLowerCase() || "jpg";
+      const path = `portrait-${Date.now()}.${ext}`;
+      const { error } = await supabase.storage.from("portraits").upload(path, file, { upsert: true, contentType: file.type });
+      if (error) throw error;
+      onChange(path);
+      toast.success("Photo uploaded. Remember to save changes.");
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : "Upload failed.");
+    } finally {
+      setBusy(false);
+    }
+  };
+
+  return (
+    <div className="grid gap-3 border border-border p-4 text-sm">
+      <span className="font-semibold text-primary">{label}</span>
+      <div className="flex flex-wrap items-center gap-5">
+        {preview ? (
+          <img src={preview} alt="Current portrait" className="size-28 border border-border object-cover" />
+        ) : (
+          <div className="grid size-28 place-items-center border border-dashed border-border text-xs text-muted-foreground">No photo</div>
+        )}
+        <div className="grid gap-2">
+          <input
+            type="file"
+            accept="image/*"
+            disabled={busy}
+            onChange={(e) => {
+              const file = e.target.files?.[0];
+              if (file) void upload(file);
+            }}
+            className="text-xs text-muted-foreground file:mr-3 file:border file:border-border file:bg-background file:px-3 file:py-2 file:text-xs"
+          />
+          <p className="text-xs text-muted-foreground">
+            {busy ? "Uploading…" : value ? "A photo is set. Click “Save changes” below to publish it." : "JPG or PNG, portrait orientation works best."}
+          </p>
+          {value && (
+            <Button size="sm" variant="ghost" className="justify-self-start" onClick={() => onChange("")}>
+              <Trash2 className="size-4" /> Remove photo
+            </Button>
+          )}
+        </div>
+      </div>
+    </div>
   );
 }
 
