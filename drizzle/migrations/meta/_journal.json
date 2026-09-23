@@ -15,6 +15,13 @@
       "when": 1790130123003,
       "tag": "0001_portrait_storage_and_content",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1790168044368,
+      "tag": "0002_create_publications",
+      "breakpoints": true
     }
   ]
 }
