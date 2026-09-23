@@ -40,10 +40,12 @@ export const Route = createFileRoute("/")({
 const navigation = [
   ["About", "about"],
   ["Research", "research"],
+  ["Publications", "publications"],
   ["Teaching", "teaching"],
   ["Resources", "resources"],
   ["Contact", "contact"],
 ] as const;
+
 
 function downloadPlaceholder(fileName: string, title: string) {
   const content = `${title}\n\nAcademic resource by Harun Chaudhari.\nThis is a placeholder document for the portfolio demonstration.`;
@@ -61,13 +63,15 @@ function splitTags(value: string) {
 
 function AcademicPortfolio() {
   const loaded = Route.useLoaderData() as
-    | { content?: Record<string, string>; bioRows?: any[]; resources?: any[] }
+    | { content?: Record<string, string>; bioRows?: any[]; resources?: any[]; publications?: any[] }
     | undefined;
   const data = {
     content: loaded?.content ?? {},
     bioRows: loaded?.bioRows ?? [],
     resources: loaded?.resources ?? [],
+    publications: loaded?.publications ?? [],
   };
+
   const [menuOpen, setMenuOpen] = useState(false);
   const [sent, setSent] = useState(false);
   const [sending, setSending] = useState(false);
