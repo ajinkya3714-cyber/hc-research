@@ -83,6 +83,45 @@ export type Database = {
         }
         Relationships: []
       }
+      publications: {
+        Row: {
+          abstract: string
+          authors: string
+          category: string
+          created_at: string
+          id: string
+          sort_order: number
+          title: string
+          url: string
+          venue: string
+          year: string
+        }
+        Insert: {
+          abstract?: string
+          authors?: string
+          category?: string
+          created_at?: string
+          id?: string
+          sort_order?: number
+          title: string
+          url?: string
+          venue?: string
+          year?: string
+        }
+        Update: {
+          abstract?: string
+          authors?: string
+          category?: string
+          created_at?: string
+          id?: string
+          sort_order?: number
+          title?: string
+          url?: string
+          venue?: string
+          year?: string
+        }
+        Relationships: []
+      }
       resources: {
         Row: {
           detail: string

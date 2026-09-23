@@ -21,15 +21,30 @@ export type SiteData = {
   content: Record<string, string>;
   bioRows: { id: string; term: string; value: string; important: boolean }[];
   resources: { id: string; type: string; title: string; detail: string; url: string }[];
+  publications: {
+    id: string;
+    category: string;
+    title: string;
+    venue: string;
+    year: string;
+    authors: string;
+    abstract: string;
+    url: string;
+  }[];
 };
 
 export const getSiteData = createServerFn({ method: "GET" }).handler(async (): Promise<SiteData> => {
   const supabase = publicClient();
-  const [contentRes, bioRes, resRes] = await Promise.all([
+  const [contentRes, bioRes, resRes, pubRes] = await Promise.all([
     supabase.from("site_content").select("key, value").order("sort_order"),
     supabase.from("bio_rows").select("id, term, value, important").order("sort_order"),
     supabase.from("resources").select("id, type, title, detail, url").order("sort_order"),
+    supabase
+      .from("publications")
+      .select("id, category, title, venue, year, authors, abstract, url")
+      .order("sort_order"),
   ]);
+
 
   const content: Record<string, string> = {};
   for (const row of contentRes.data ?? []) content[row.key] = row.value;
@@ -50,8 +65,10 @@ export const getSiteData = createServerFn({ method: "GET" }).handler(async (): P
     content,
     bioRows: bioRes.data ?? [],
     resources: resRes.data ?? [],
+    publications: pubRes.data ?? [],
   };
 });
+
 
 export const sendMessage = createServerFn({ method: "POST" })
   .inputValidator((input: { name: string; email: string; message: string }) => {
