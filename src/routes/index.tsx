@@ -267,6 +267,9 @@ function AcademicPortfolio() {
           </div>
         </section>
 
+        <PublicationsSection publications={data.publications} />
+
+
         <section id="contact" className="scroll-mt-18 bg-primary py-20 text-primary-foreground sm:py-28">
           <div className="mx-auto grid max-w-7xl gap-12 px-5 sm:px-8 lg:grid-cols-[0.8fr_1.2fr] lg:gap-20 lg:px-12">
             <div><SectionLabel number="05" inverse>Contact</SectionLabel><h2 className="mt-5 font-serif text-4xl leading-tight sm:text-5xl">{t("contact_heading", "Let’s begin a scholarly conversation.")}</h2><p className="mt-6 max-w-md whitespace-pre-line leading-7 text-primary-foreground/65">{t("contact_body", "For academic correspondence, research discussions, or teaching opportunities, please send a message.")}</p><div className="mt-9 flex items-center gap-3 text-sm text-primary-foreground/75"><Mail className="size-5 text-accent" /> Academic enquiries welcome</div></div>
@@ -311,4 +314,66 @@ function Tag({ children }: { children: React.ReactNode }) {
 
 function Field({ label, name, type }: { label: string; name: string; type: string }) {
   return <label className="grid gap-2 text-sm"><span className="text-primary-foreground/70">{label}</span><input required name={name} type={type} className="h-12 border border-primary-foreground/25 bg-primary-foreground/5 px-4 text-primary-foreground outline-none transition-colors placeholder:text-primary-foreground/35 focus:border-accent" placeholder={label === "Name" ? "Your full name" : "you@example.com"} /></label>;
+}
+
+type PublicationItem = { id: string; category: string; title: string; venue: string; year: string; authors: string; abstract: string; url: string };
+
+function PublicationsSection({ publications }: { publications: PublicationItem[] }) {
+  const [filter, setFilter] = useState("All");
+  const [open, setOpen] = useState<string | null>(null);
+  const categories = ["All", ...Array.from(new Set(publications.map((p) => p.category).filter(Boolean)))];
+  const shown = filter === "All" ? publications : publications.filter((p) => p.category === filter);
+
+  return (
+    <section id="publications" className="scroll-mt-18 bg-background py-20 sm:py-28">
+      <div className="mx-auto max-w-7xl px-5 sm:px-8 lg:px-12">
+        <SectionLabel number="05">Publications</SectionLabel>
+        <h2 className="mt-5 font-serif text-3xl sm:text-4xl">Articles, papers &amp; presentations</h2>
+        {publications.length === 0 ? (
+          <p className="mt-8 text-muted-foreground">Publications will be listed here soon.</p>
+        ) : (
+          <>
+            <div className="mt-8 flex flex-wrap gap-2">
+              {categories.map((c) => (
+                <button
+                  key={c}
+                  onClick={() => setFilter(c)}
+                  className={`border px-4 py-1.5 text-sm transition-colors ${filter === c ? "border-primary bg-primary text-primary-foreground" : "border-border text-muted-foreground hover:border-primary hover:text-primary"}`}
+                >
+                  {c}
+                </button>
+              ))}
+            </div>
+            <ol className="mt-10 divide-y divide-border border-y border-border">
+              {shown.map((p) => (
+                <li key={p.id} className="py-7">
+                  <div className="flex flex-wrap items-center gap-3 text-xs font-bold uppercase tracking-[0.16em]">
+                    <span className="text-accent-foreground">{p.category}</span>
+                    {p.year && <span className="text-muted-foreground">{p.year}</span>}
+                  </div>
+                  <h3 className="mt-3 font-serif text-xl leading-snug">{p.title}</h3>
+                  {(p.authors || p.venue) && (
+                    <p className="mt-2 text-sm text-muted-foreground">
+                      {p.authors}{p.authors && p.venue ? " · " : ""}<em>{p.venue}</em>
+                    </p>
+                  )}
+                  <div className="mt-4 flex flex-wrap gap-5 text-sm font-semibold text-primary">
+                    {p.abstract && (
+                      <button onClick={() => setOpen(open === p.id ? null : p.id)} className="underline-offset-4 hover:underline">
+                        {open === p.id ? "Hide abstract" : "Read abstract"}
+                      </button>
+                    )}
+                    {p.url && (
+                      <a href={p.url} target="_blank" rel="noreferrer" className="underline-offset-4 hover:underline">Full text →</a>
+                    )}
+                  </div>
+                  {open === p.id && <p className="mt-4 max-w-3xl whitespace-pre-line leading-7 text-muted-foreground">{p.abstract}</p>}
+                </li>
+              ))}
+            </ol>
+          </>
+        )}
+      </div>
+    </section>
+  );
 }
