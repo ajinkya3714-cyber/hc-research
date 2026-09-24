@@ -267,6 +267,9 @@ function AcademicPortfolio() {
           </div>
         </section>
 
+        <PublicationsSection publications={data.publications} />
+
+
         <section id="contact" className="scroll-mt-18 bg-primary py-20 text-primary-foreground sm:py-28">
           <div className="mx-auto grid max-w-7xl gap-12 px-5 sm:px-8 lg:grid-cols-[0.8fr_1.2fr] lg:gap-20 lg:px-12">
             <div><SectionLabel number="05" inverse>Contact</SectionLabel><h2 className="mt-5 font-serif text-4xl leading-tight sm:text-5xl">{t("contact_heading", "Let’s begin a scholarly conversation.")}</h2><p className="mt-6 max-w-md whitespace-pre-line leading-7 text-primary-foreground/65">{t("contact_body", "For academic correspondence, research discussions, or teaching opportunities, please send a message.")}</p><div className="mt-9 flex items-center gap-3 text-sm text-primary-foreground/75"><Mail className="size-5 text-accent" /> Academic enquiries welcome</div></div>

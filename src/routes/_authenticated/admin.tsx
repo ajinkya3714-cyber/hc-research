@@ -11,10 +11,12 @@ import { claimFirstAdmin, listMembers, setAdmin } from "@/lib/admin.functions";
 import {
   deleteBioRow,
   deleteMessage,
+  deletePublication,
   deleteResource,
   getAdminData,
   saveBioRow,
   saveContent,
+  savePublication,
   saveResource,
   type AdminData,
 } from "@/lib/cms.functions";
@@ -34,7 +36,7 @@ export const Route = createFileRoute("/_authenticated/admin")({
   component: AdminPage,
 });
 
-const TABS = ["Content", "Bio-data", "Resources", "Messages", "Members"] as const;
+const TABS = ["Content", "Bio-data", "Resources", "Publications", "Messages", "Members"] as const;
 type Tab = (typeof TABS)[number];
 
 function AdminPage() {
@@ -123,6 +125,7 @@ function AdminPage() {
             {tab === "Content" && <ContentPanel data={query.data} onSaved={refresh} />}
             {tab === "Bio-data" && <BioPanel data={query.data} onSaved={refresh} />}
             {tab === "Resources" && <ResourcePanel data={query.data} onSaved={refresh} />}
+            {tab === "Publications" && <PublicationsPanel data={query.data} onSaved={refresh} />}
             {tab === "Messages" && <MessagesPanel data={query.data} onSaved={refresh} />}
             {tab === "Members" && <MembersPanel />}
           </>
@@ -417,6 +420,85 @@ function ResourceEditor({
         <Button size="sm" variant="ghost" onClick={onDelete}>
           <Trash2 className="size-4" /> Delete
         </Button>
+      </div>
+    </div>
+  );
+}
+
+const PUB_CATEGORIES = ["Journal article", "Conference presentation", "Working paper", "Abstract", "Book chapter", "Other"];
+type PubForm = { category: string; title: string; venue: string; year: string; authors: string; abstract: string; url: string };
+const emptyPub: PubForm = { category: "Journal article", title: "", venue: "", year: "", authors: "", abstract: "", url: "" };
+
+function PubFields({ form, setForm }: { form: PubForm; setForm: (f: PubForm) => void }) {
+  return (
+    <div className="grid gap-3 sm:grid-cols-2">
+      <select className={inputClass} value={form.category} onChange={(e) => setForm({ ...form, category: e.target.value })}>
+        {PUB_CATEGORIES.map((c) => <option key={c}>{c}</option>)}
+      </select>
+      <input className={inputClass} placeholder="Year" value={form.year} onChange={(e) => setForm({ ...form, year: e.target.value })} />
+      <input className={`${inputClass} sm:col-span-2`} placeholder="Title" value={form.title} onChange={(e) => setForm({ ...form, title: e.target.value })} />
+      <input className={inputClass} placeholder="Journal / conference / venue" value={form.venue} onChange={(e) => setForm({ ...form, venue: e.target.value })} />
+      <input className={inputClass} placeholder="Authors" value={form.authors} onChange={(e) => setForm({ ...form, authors: e.target.value })} />
+      <textarea className={`${inputClass} sm:col-span-2 min-h-24`} placeholder="Abstract" value={form.abstract} onChange={(e) => setForm({ ...form, abstract: e.target.value })} />
+      <input className={`${inputClass} sm:col-span-2`} placeholder="Link to full text (optional)" value={form.url} onChange={(e) => setForm({ ...form, url: e.target.value })} />
+    </div>
+  );
+}
+
+function PublicationsPanel({ data, onSaved }: { data: AdminData; onSaved: () => void }) {
+  const save = useServerFn(savePublication);
+  const remove = useServerFn(deletePublication);
+  const [draft, setDraft] = useState<PubForm>(emptyPub);
+  return (
+    <Panel title="Publications" description="Journal articles, conference presentations, working papers and abstracts.">
+      <div className="grid gap-4">
+        {data.publications.map((row) => (
+          <PublicationEditor
+            key={row.id}
+            row={row}
+            onSave={async (patch) => {
+              await save({ data: { id: row.id, sort_order: row.sort_order, ...patch } });
+              toast.success("Publication updated.");
+              onSaved();
+            }}
+            onDelete={async () => {
+              await remove({ data: { id: row.id } });
+              toast.success("Publication deleted.");
+              onSaved();
+            }}
+          />
+        ))}
+      </div>
+      <div className="mt-8 border-t border-border pt-6">
+        <p className="mb-3 text-sm font-semibold text-primary">Add a publication</p>
+        <PubFields form={draft} setForm={setDraft} />
+        <Button
+          className="mt-4"
+          disabled={!draft.title}
+          onClick={async () => {
+            await save({ data: { ...draft, sort_order: data.publications.length + 1 } });
+            setDraft(emptyPub);
+            toast.success("Publication added.");
+            onSaved();
+          }}
+        >
+          <Plus /> Add publication
+        </Button>
+      </div>
+    </Panel>
+  );
+}
+
+function PublicationEditor({ row, onSave, onDelete }: { row: AdminData["publications"][number]; onSave: (p: PubForm) => Promise<void>; onDelete: () => Promise<void> }) {
+  const initial: PubForm = { category: row.category, title: row.title, venue: row.venue, year: row.year, authors: row.authors, abstract: row.abstract, url: row.url };
+  const [form, setForm] = useState<PubForm>(initial);
+  const changed = JSON.stringify(form) !== JSON.stringify(initial);
+  return (
+    <div className="border border-border p-4">
+      <PubFields form={form} setForm={setForm} />
+      <div className="mt-3 flex gap-2">
+        <Button size="sm" disabled={!changed || !form.title} onClick={() => onSave(form)}>Save</Button>
+        <Button size="sm" variant="ghost" onClick={onDelete}><Trash2 className="size-4" /> Delete</Button>
       </div>
     </div>
   );
