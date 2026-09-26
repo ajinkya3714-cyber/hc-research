@@ -176,6 +176,39 @@ export type Database = {
         }
         Relationships: []
       }
+      thesis_chapters: {
+        Row: {
+          chapter_label: string
+          created_at: string
+          id: string
+          sort_order: number
+          status: string
+          synopsis: string
+          title: string
+          url: string
+        }
+        Insert: {
+          chapter_label?: string
+          created_at?: string
+          id?: string
+          sort_order?: number
+          status?: string
+          synopsis?: string
+          title: string
+          url?: string
+        }
+        Update: {
+          chapter_label?: string
+          created_at?: string
+          id?: string
+          sort_order?: number
+          status?: string
+          synopsis?: string
+          title?: string
+          url?: string
+        }
+        Relationships: []
+      }
       user_roles: {
         Row: {
           id: string
