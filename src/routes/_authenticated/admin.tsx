@@ -9,12 +9,15 @@ import { Button } from "@/components/ui/button";
 import { supabase } from "@/integrations/supabase/client";
 import { claimFirstAdmin, listMembers, setAdmin } from "@/lib/admin.functions";
 import {
+  CHAPTER_STATUSES,
   deleteBioRow,
+  deleteChapter,
   deleteMessage,
   deletePublication,
   deleteResource,
   getAdminData,
   saveBioRow,
+  saveChapter,
   saveContent,
   savePublication,
   saveResource,
@@ -36,7 +39,7 @@ export const Route = createFileRoute("/_authenticated/admin")({
   component: AdminPage,
 });
 
-const TABS = ["Content", "Bio-data", "Resources", "Publications", "Messages", "Members"] as const;
+const TABS = ["Content", "Bio-data", "Thesis chapters", "Resources", "Publications", "Messages", "Members"] as const;
 type Tab = (typeof TABS)[number];
 
 function AdminPage() {
@@ -124,6 +127,7 @@ function AdminPage() {
 
             {tab === "Content" && <ContentPanel data={query.data} onSaved={refresh} />}
             {tab === "Bio-data" && <BioPanel data={query.data} onSaved={refresh} />}
+            {tab === "Thesis chapters" && <ChaptersPanel data={query.data} onSaved={refresh} />}
             {tab === "Resources" && <ResourcePanel data={query.data} onSaved={refresh} />}
             {tab === "Publications" && <PublicationsPanel data={query.data} onSaved={refresh} />}
             {tab === "Messages" && <MessagesPanel data={query.data} onSaved={refresh} />}
@@ -501,6 +505,82 @@ function PublicationEditor({ row, onSave, onDelete }: { row: AdminData["publicat
         <Button size="sm" variant="ghost" onClick={onDelete}><Trash2 className="size-4" /> Delete</Button>
       </div>
     </div>
+  );
+}
+
+type ChapterForm = { chapter_label: string; title: string; synopsis: string; status: string; url: string };
+const emptyChapter: ChapterForm = { chapter_label: "", title: "", synopsis: "", status: "In progress", url: "" };
+
+function ChapterFields({ form, setForm }: { form: ChapterForm; setForm: (f: ChapterForm) => void }) {
+  return (
+    <div className="grid gap-3 sm:grid-cols-2">
+      <input className={inputClass} placeholder="Chapter label (e.g. Chapter I)" value={form.chapter_label} onChange={(e) => setForm({ ...form, chapter_label: e.target.value })} />
+      <select className={inputClass} value={form.status} onChange={(e) => setForm({ ...form, status: e.target.value })}>
+        {CHAPTER_STATUSES.map((s) => <option key={s}>{s}</option>)}
+      </select>
+      <input className={`${inputClass} sm:col-span-2`} placeholder="Chapter title" value={form.title} onChange={(e) => setForm({ ...form, title: e.target.value })} />
+      <textarea className={`${inputClass} sm:col-span-2 min-h-24`} placeholder="Synopsis / summary of the chapter" value={form.synopsis} onChange={(e) => setForm({ ...form, synopsis: e.target.value })} />
+      <input className={`${inputClass} sm:col-span-2`} placeholder="Google Docs / Drive link (visitors click a button to open it)" value={form.url} onChange={(e) => setForm({ ...form, url: e.target.value })} />
+    </div>
+  );
+}
+
+function ChapterEditor({ row, onSave, onDelete }: { row: AdminData["chapters"][number]; onSave: (f: ChapterForm) => Promise<void>; onDelete: () => Promise<void> }) {
+  const initial: ChapterForm = { chapter_label: row.chapter_label, title: row.title, synopsis: row.synopsis, status: row.status, url: row.url };
+  const [form, setForm] = useState<ChapterForm>(initial);
+  const changed = JSON.stringify(form) !== JSON.stringify(initial);
+  return (
+    <div className="border border-border p-4">
+      <ChapterFields form={form} setForm={setForm} />
+      <div className="mt-3 flex gap-2">
+        <Button size="sm" disabled={!changed || !form.title} onClick={() => onSave(form)}>Save</Button>
+        <Button size="sm" variant="ghost" onClick={onDelete}><Trash2 className="size-4" /> Delete</Button>
+      </div>
+    </div>
+  );
+}
+
+function ChaptersPanel({ data, onSaved }: { data: AdminData; onSaved: () => void }) {
+  const save = useServerFn(saveChapter);
+  const remove = useServerFn(deleteChapter);
+  const [draft, setDraft] = useState<ChapterForm>(emptyChapter);
+  return (
+    <Panel title="Thesis chapters" description="List your Ph.D. chapters, add a summary, and paste a Google link visitors can open.">
+      <div className="grid gap-4">
+        {data.chapters.map((row) => (
+          <ChapterEditor
+            key={row.id}
+            row={row}
+            onSave={async (patch) => {
+              await save({ data: { id: row.id, sort_order: row.sort_order, ...patch } });
+              toast.success("Chapter updated.");
+              onSaved();
+            }}
+            onDelete={async () => {
+              await remove({ data: { id: row.id } });
+              toast.success("Chapter deleted.");
+              onSaved();
+            }}
+          />
+        ))}
+      </div>
+      <div className="mt-8 border-t border-border pt-6">
+        <p className="mb-3 text-sm font-semibold text-primary">Add a chapter</p>
+        <ChapterFields form={draft} setForm={setDraft} />
+        <Button
+          className="mt-4"
+          disabled={!draft.title}
+          onClick={async () => {
+            await save({ data: { ...draft, sort_order: data.chapters.length + 1 } });
+            setDraft(emptyChapter);
+            toast.success("Chapter added.");
+            onSaved();
+          }}
+        >
+          <Plus /> Add chapter
+        </Button>
+      </div>
+    </Panel>
   );
 }
 
