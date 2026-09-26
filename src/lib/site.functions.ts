@@ -31,17 +31,29 @@ export type SiteData = {
     abstract: string;
     url: string;
   }[];
+  chapters: {
+    id: string;
+    chapter_label: string;
+    title: string;
+    synopsis: string;
+    status: string;
+    url: string;
+  }[];
 };
 
 export const getSiteData = createServerFn({ method: "GET" }).handler(async (): Promise<SiteData> => {
   const supabase = publicClient();
-  const [contentRes, bioRes, resRes, pubRes] = await Promise.all([
+  const [contentRes, bioRes, resRes, pubRes, chapRes] = await Promise.all([
     supabase.from("site_content").select("key, value").order("sort_order"),
     supabase.from("bio_rows").select("id, term, value, important").order("sort_order"),
     supabase.from("resources").select("id, type, title, detail, url").order("sort_order"),
     supabase
       .from("publications")
       .select("id, category, title, venue, year, authors, abstract, url")
+      .order("sort_order"),
+    supabase
+      .from("thesis_chapters")
+      .select("id, chapter_label, title, synopsis, status, url")
       .order("sort_order"),
   ]);
 
@@ -66,6 +78,7 @@ export const getSiteData = createServerFn({ method: "GET" }).handler(async (): P
     bioRows: bioRes.data ?? [],
     resources: resRes.data ?? [],
     publications: pubRes.data ?? [],
+    chapters: chapRes.data ?? [],
   };
 });
 
