@@ -39,6 +39,14 @@ export type SiteData = {
     status: string;
     url: string;
   }[];
+  education: {
+    id: string;
+    degree: string;
+    board: string;
+    passing_date: string;
+    seat_number: string;
+    percentage: string;
+  }[];
 };
 
 export const getSiteData = createServerFn({ method: "GET" }).handler(async (): Promise<SiteData> => {
