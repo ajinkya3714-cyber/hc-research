@@ -91,6 +91,7 @@ export const getSiteData = createServerFn({ method: "GET" }).handler(async (): P
     resources: resRes.data ?? [],
     publications: pubRes.data ?? [],
     chapters: chapRes.data ?? [],
+    education: eduRes.data ?? [],
   };
 });
 
