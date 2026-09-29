@@ -129,6 +129,7 @@ function AdminPage() {
 
             {tab === "Content" && <ContentPanel data={query.data} onSaved={refresh} />}
             {tab === "Bio-data" && <BioPanel data={query.data} onSaved={refresh} />}
+            {tab === "Education" && <EducationPanel data={query.data} onSaved={refresh} />}
             {tab === "Thesis chapters" && <ChaptersPanel data={query.data} onSaved={refresh} />}
             {tab === "Resources" && <ResourcePanel data={query.data} onSaved={refresh} />}
             {tab === "Publications" && <PublicationsPanel data={query.data} onSaved={refresh} />}
