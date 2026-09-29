@@ -379,3 +379,38 @@ function PublicationsSection({ publications }: { publications: PublicationItem[]
     </section>
   );
 }
+
+type ChapterItem = { id: string; chapter_label: string; title: string; synopsis: string; status: string; url: string };
+
+function ThesisChapters({ chapters }: { chapters: ChapterItem[] }) {
+  if (chapters.length === 0) return null;
+  return (
+    <div className="mt-14">
+      <div className="flex items-center gap-3">
+        <BookMarked className="size-6 text-accent-foreground" />
+        <h3 className="font-serif text-2xl sm:text-3xl">Dissertation chapters</h3>
+      </div>
+      <ol className="mt-8 divide-y divide-border border border-border bg-card shadow-sm">
+        {chapters.map((chapter) => (
+          <li key={chapter.id} className="grid gap-4 p-6 sm:grid-cols-[auto_1fr_auto] sm:items-start sm:gap-8 sm:p-8">
+            <p className="font-serif text-sm uppercase tracking-[0.14em] text-accent-foreground sm:w-28">{chapter.chapter_label}</p>
+            <div>
+              <div className="flex flex-wrap items-center gap-3">
+                <h4 className="font-serif text-lg leading-snug sm:text-xl">{chapter.title}</h4>
+                {chapter.status && (
+                  <span className="border border-accent/50 bg-accent/10 px-2.5 py-0.5 text-[11px] font-bold uppercase tracking-[0.12em] text-accent-foreground">{chapter.status}</span>
+                )}
+              </div>
+              {chapter.synopsis && <p className="mt-3 max-w-3xl whitespace-pre-line text-sm leading-7 text-muted-foreground">{chapter.synopsis}</p>}
+            </div>
+            {chapter.url && (
+              <Button variant="outline" size="sm" asChild className="shrink-0">
+                <a href={chapter.url} target="_blank" rel="noreferrer">Open chapter</a>
+              </Button>
+            )}
+          </li>
+        ))}
+      </ol>
+    </div>
+  );
+}
