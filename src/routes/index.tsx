@@ -63,13 +63,14 @@ function splitTags(value: string) {
 
 function AcademicPortfolio() {
   const loaded = Route.useLoaderData() as
-    | { content?: Record<string, string>; bioRows?: any[]; resources?: any[]; publications?: any[] }
+    | { content?: Record<string, string>; bioRows?: any[]; resources?: any[]; publications?: any[]; chapters?: ChapterItem[] }
     | undefined;
   const data = {
     content: loaded?.content ?? {},
     bioRows: loaded?.bioRows ?? [],
     resources: loaded?.resources ?? [],
     publications: loaded?.publications ?? [],
+    chapters: loaded?.chapters ?? [],
   };
 
   const [menuOpen, setMenuOpen] = useState(false);
@@ -216,6 +217,7 @@ function AcademicPortfolio() {
                 <div className="mt-8 flex flex-wrap gap-2">{splitTags(t("research_tags", "Thomas Browne, Early Modern Prose, Logic & Mysticism")).map((tag) => <Tag key={tag}>{tag}</Tag>)}</div>
               </div>
             </div>
+            <ThesisChapters chapters={data.chapters} />
           </div>
         </section>
 
