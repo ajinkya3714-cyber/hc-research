@@ -33,12 +33,23 @@ export type ThesisChapter = {
 
 export const CHAPTER_STATUSES = ["In progress", "Drafted", "Under review", "Completed"];
 
+export type EducationRow = {
+  id: string;
+  degree: string;
+  board: string;
+  passing_date: string;
+  seat_number: string;
+  percentage: string;
+  sort_order: number;
+};
+
 export type AdminData = {
   content: { key: string; label: string; value: string; multiline: boolean; sort_order: number }[];
   bioRows: { id: string; term: string; value: string; important: boolean; sort_order: number }[];
   resources: { id: string; type: string; title: string; detail: string; url: string; sort_order: number }[];
   publications: Publication[];
   chapters: ThesisChapter[];
+  education: EducationRow[];
   messages: { id: string; name: string; email: string; message: string; created_at: string }[];
 };
 
@@ -47,7 +58,7 @@ export const getAdminData = createServerFn({ method: "GET" })
   .handler(async ({ context }): Promise<AdminData> => {
     await assertAdmin(context as any);
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
-    const [content, bio, res, pub, chap, msg] = await Promise.all([
+    const [content, bio, res, pub, chap, edu, msg] = await Promise.all([
       supabaseAdmin.from("site_content").select("key, label, value, multiline, sort_order").order("sort_order"),
       supabaseAdmin.from("bio_rows").select("id, term, value, important, sort_order").order("sort_order"),
       supabaseAdmin.from("resources").select("id, type, title, detail, url, sort_order").order("sort_order"),
@@ -59,6 +70,10 @@ export const getAdminData = createServerFn({ method: "GET" })
         .from("thesis_chapters")
         .select("id, chapter_label, title, synopsis, status, url, sort_order")
         .order("sort_order"),
+      supabaseAdmin
+        .from("education_qualifications")
+        .select("id, degree, board, passing_date, seat_number, percentage, sort_order")
+        .order("sort_order"),
       supabaseAdmin.from("messages").select("id, name, email, message, created_at").order("created_at", { ascending: false }),
     ]);
     return {
@@ -67,8 +82,41 @@ export const getAdminData = createServerFn({ method: "GET" })
       resources: res.data ?? [],
       publications: pub.data ?? [],
       chapters: chap.data ?? [],
+      education: edu.data ?? [],
       messages: msg.data ?? [],
     };
+  });
+
+export const saveEducation = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((input: Partial<EducationRow> & { degree: string; sort_order: number }) => input)
+  .handler(async ({ data, context }) => {
+    await assertAdmin(context as any);
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const payload = {
+      degree: data.degree,
+      board: data.board ?? "",
+      passing_date: data.passing_date ?? "",
+      seat_number: data.seat_number ?? "",
+      percentage: data.percentage ?? "",
+      sort_order: data.sort_order,
+    };
+    const { error } = data.id
+      ? await supabaseAdmin.from("education_qualifications").update(payload).eq("id", data.id)
+      : await supabaseAdmin.from("education_qualifications").insert(payload);
+    if (error) throw new Error(error.message);
+    return { ok: true };
+  });
+
+export const deleteEducation = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((input: { id: string }) => input)
+  .handler(async ({ data, context }) => {
+    await assertAdmin(context as any);
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const { error } = await supabaseAdmin.from("education_qualifications").delete().eq("id", data.id);
+    if (error) throw new Error(error.message);
+    return { ok: true };
   });
 
 export const saveChapter = createServerFn({ method: "POST" })

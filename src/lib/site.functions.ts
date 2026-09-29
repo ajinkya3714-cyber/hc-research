@@ -39,11 +39,19 @@ export type SiteData = {
     status: string;
     url: string;
   }[];
+  education: {
+    id: string;
+    degree: string;
+    board: string;
+    passing_date: string;
+    seat_number: string;
+    percentage: string;
+  }[];
 };
 
 export const getSiteData = createServerFn({ method: "GET" }).handler(async (): Promise<SiteData> => {
   const supabase = publicClient();
-  const [contentRes, bioRes, resRes, pubRes, chapRes] = await Promise.all([
+  const [contentRes, bioRes, resRes, pubRes, chapRes, eduRes] = await Promise.all([
     supabase.from("site_content").select("key, value").order("sort_order"),
     supabase.from("bio_rows").select("id, term, value, important").order("sort_order"),
     supabase.from("resources").select("id, type, title, detail, url").order("sort_order"),
@@ -54,6 +62,10 @@ export const getSiteData = createServerFn({ method: "GET" }).handler(async (): P
     supabase
       .from("thesis_chapters")
       .select("id, chapter_label, title, synopsis, status, url")
+      .order("sort_order"),
+    supabase
+      .from("education_qualifications")
+      .select("id, degree, board, passing_date, seat_number, percentage")
       .order("sort_order"),
   ]);
 
@@ -79,6 +91,7 @@ export const getSiteData = createServerFn({ method: "GET" }).handler(async (): P
     resources: resRes.data ?? [],
     publications: pubRes.data ?? [],
     chapters: chapRes.data ?? [],
+    education: eduRes.data ?? [],
   };
 });
 

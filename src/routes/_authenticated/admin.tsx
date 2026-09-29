@@ -12,6 +12,7 @@ import {
   CHAPTER_STATUSES,
   deleteBioRow,
   deleteChapter,
+  deleteEducation,
   deleteMessage,
   deletePublication,
   deleteResource,
@@ -19,6 +20,7 @@ import {
   saveBioRow,
   saveChapter,
   saveContent,
+  saveEducation,
   savePublication,
   saveResource,
   type AdminData,
@@ -39,7 +41,7 @@ export const Route = createFileRoute("/_authenticated/admin")({
   component: AdminPage,
 });
 
-const TABS = ["Content", "Bio-data", "Thesis chapters", "Resources", "Publications", "Messages", "Members"] as const;
+const TABS = ["Content", "Bio-data", "Education", "Thesis chapters", "Resources", "Publications", "Messages", "Members"] as const;
 type Tab = (typeof TABS)[number];
 
 function AdminPage() {
@@ -127,6 +129,7 @@ function AdminPage() {
 
             {tab === "Content" && <ContentPanel data={query.data} onSaved={refresh} />}
             {tab === "Bio-data" && <BioPanel data={query.data} onSaved={refresh} />}
+            {tab === "Education" && <EducationPanel data={query.data} onSaved={refresh} />}
             {tab === "Thesis chapters" && <ChaptersPanel data={query.data} onSaved={refresh} />}
             {tab === "Resources" && <ResourcePanel data={query.data} onSaved={refresh} />}
             {tab === "Publications" && <PublicationsPanel data={query.data} onSaved={refresh} />}
@@ -655,6 +658,86 @@ function MembersPanel() {
             </Button>
           </div>
         ))}
+      </div>
+    </Panel>
+  );
+}
+
+type EduForm = { degree: string; board: string; passing_date: string; seat_number: string; percentage: string };
+const emptyEdu: EduForm = { degree: "", board: "", passing_date: "", seat_number: "", percentage: "" };
+
+function EduFields({ form, setForm }: { form: EduForm; setForm: (f: EduForm) => void }) {
+  return (
+    <div className="grid gap-3 sm:grid-cols-2">
+      <input className={inputClass} placeholder="Degree (e.g. M.A. English)" value={form.degree} onChange={(e) => setForm({ ...form, degree: e.target.value })} />
+      <input className={inputClass} placeholder="Board / University" value={form.board} onChange={(e) => setForm({ ...form, board: e.target.value })} />
+      <input className={inputClass} placeholder="Passing month and year (e.g. April 2015)" value={form.passing_date} onChange={(e) => setForm({ ...form, passing_date: e.target.value })} />
+      <input className={inputClass} placeholder="Seat number" value={form.seat_number} onChange={(e) => setForm({ ...form, seat_number: e.target.value })} />
+      <input className={inputClass} placeholder="Percentage / grade" value={form.percentage} onChange={(e) => setForm({ ...form, percentage: e.target.value })} />
+    </div>
+  );
+}
+
+function EducationEditor({ row, onSave, onDelete }: { row: AdminData["education"][number]; onSave: (f: EduForm) => Promise<void>; onDelete: () => Promise<void> }) {
+  const initial: EduForm = {
+    degree: row.degree,
+    board: row.board,
+    passing_date: row.passing_date,
+    seat_number: row.seat_number,
+    percentage: row.percentage,
+  };
+  const [form, setForm] = useState<EduForm>(initial);
+  const changed = JSON.stringify(form) !== JSON.stringify(initial);
+  return (
+    <div className="border border-border p-4">
+      <EduFields form={form} setForm={setForm} />
+      <div className="mt-3 flex gap-2">
+        <Button size="sm" disabled={!changed || !form.degree} onClick={() => onSave(form)}>Save</Button>
+        <Button size="sm" variant="ghost" onClick={onDelete}><Trash2 className="size-4" /> Delete</Button>
+      </div>
+    </div>
+  );
+}
+
+function EducationPanel({ data, onSaved }: { data: AdminData; onSaved: () => void }) {
+  const save = useServerFn(saveEducation);
+  const remove = useServerFn(deleteEducation);
+  const [draft, setDraft] = useState<EduForm>(emptyEdu);
+  return (
+    <Panel title="Educational qualifications" description="Degree, board or university, passing month and year, seat number and percentage.">
+      <div className="grid gap-4">
+        {data.education.map((row) => (
+          <EducationEditor
+            key={row.id}
+            row={row}
+            onSave={async (patch) => {
+              await save({ data: { id: row.id, sort_order: row.sort_order, ...patch } });
+              toast.success("Qualification updated.");
+              onSaved();
+            }}
+            onDelete={async () => {
+              await remove({ data: { id: row.id } });
+              toast.success("Qualification deleted.");
+              onSaved();
+            }}
+          />
+        ))}
+      </div>
+      <div className="mt-8 border-t border-border pt-6">
+        <p className="mb-3 text-sm font-semibold text-primary">Add a qualification</p>
+        <EduFields form={draft} setForm={setDraft} />
+        <Button
+          className="mt-4"
+          disabled={!draft.degree}
+          onClick={async () => {
+            await save({ data: { ...draft, sort_order: data.education.length + 1 } });
+            setDraft(emptyEdu);
+            toast.success("Qualification added.");
+            onSaved();
+          }}
+        >
+          <Plus /> Add qualification
+        </Button>
       </div>
     </Panel>
   );

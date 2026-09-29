@@ -38,6 +38,39 @@ export type Database = {
         }
         Relationships: []
       }
+      education_qualifications: {
+        Row: {
+          board: string
+          created_at: string
+          degree: string
+          id: string
+          passing_date: string
+          percentage: string
+          seat_number: string
+          sort_order: number
+        }
+        Insert: {
+          board?: string
+          created_at?: string
+          degree: string
+          id?: string
+          passing_date?: string
+          percentage?: string
+          seat_number?: string
+          sort_order?: number
+        }
+        Update: {
+          board?: string
+          created_at?: string
+          degree?: string
+          id?: string
+          passing_date?: string
+          percentage?: string
+          seat_number?: string
+          sort_order?: number
+        }
+        Relationships: []
+      }
       messages: {
         Row: {
           created_at: string
