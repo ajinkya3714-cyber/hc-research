@@ -33,12 +33,23 @@ export type ThesisChapter = {
 
 export const CHAPTER_STATUSES = ["In progress", "Drafted", "Under review", "Completed"];
 
+export type EducationRow = {
+  id: string;
+  degree: string;
+  board: string;
+  passing_date: string;
+  seat_number: string;
+  percentage: string;
+  sort_order: number;
+};
+
 export type AdminData = {
   content: { key: string; label: string; value: string; multiline: boolean; sort_order: number }[];
   bioRows: { id: string; term: string; value: string; important: boolean; sort_order: number }[];
   resources: { id: string; type: string; title: string; detail: string; url: string; sort_order: number }[];
   publications: Publication[];
   chapters: ThesisChapter[];
+  education: EducationRow[];
   messages: { id: string; name: string; email: string; message: string; created_at: string }[];
 };
 
