@@ -63,7 +63,7 @@ function splitTags(value: string) {
 
 function AcademicPortfolio() {
   const loaded = Route.useLoaderData() as
-    | { content?: Record<string, string>; bioRows?: any[]; resources?: any[]; publications?: any[]; chapters?: ChapterItem[] }
+    | { content?: Record<string, string>; bioRows?: any[]; resources?: any[]; publications?: any[]; chapters?: ChapterItem[]; education?: EducationItem[] }
     | undefined;
   const data = {
     content: loaded?.content ?? {},
@@ -71,6 +71,7 @@ function AcademicPortfolio() {
     resources: loaded?.resources ?? [],
     publications: loaded?.publications ?? [],
     chapters: loaded?.chapters ?? [],
+    education: loaded?.education ?? [],
   };
 
   const [menuOpen, setMenuOpen] = useState(false);
@@ -200,6 +201,7 @@ function AcademicPortfolio() {
               </dl>
             </div>
           </div>
+          <EducationTable education={data.education} />
         </section>
 
         <section id="research" className="scroll-mt-18 bg-secondary py-20 sm:py-28">
