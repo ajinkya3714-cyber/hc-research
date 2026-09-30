@@ -384,6 +384,44 @@ function PublicationsSection({ publications }: { publications: PublicationItem[]
 
 type ChapterItem = { id: string; chapter_label: string; title: string; synopsis: string; status: string; url: string };
 
+type EducationItem = { id: string; degree: string; board: string; passing_date: string; seat_number: string; percentage: string };
+
+function EducationTable({ education }: { education: EducationItem[] }) {
+  if (education.length === 0) return null;
+  return (
+    <div className="mx-auto mt-16 max-w-7xl px-5 sm:px-8 lg:px-12">
+      <div className="flex items-center gap-3">
+        <GraduationCap className="size-6 text-accent-foreground" />
+        <h3 className="font-serif text-2xl sm:text-3xl">Educational qualifications</h3>
+      </div>
+      <div className="mt-8 overflow-x-auto border border-border bg-card shadow-sm">
+        <table className="w-full min-w-[640px] text-left text-sm">
+          <thead>
+            <tr className="border-b border-border bg-secondary text-xs font-bold uppercase tracking-[0.14em] text-muted-foreground">
+              <th scope="col" className="px-5 py-4">Degree</th>
+              <th scope="col" className="px-5 py-4">Board / University</th>
+              <th scope="col" className="px-5 py-4">Passing Month &amp; Year</th>
+              <th scope="col" className="px-5 py-4">Seat No.</th>
+              <th scope="col" className="px-5 py-4">Percentage</th>
+            </tr>
+          </thead>
+          <tbody className="divide-y divide-border">
+            {education.map((row) => (
+              <tr key={row.id}>
+                <th scope="row" className="px-5 py-4 font-serif text-base font-bold text-primary">{row.degree}</th>
+                <td className="px-5 py-4 text-muted-foreground">{row.board}</td>
+                <td className="px-5 py-4 text-muted-foreground">{row.passing_date}</td>
+                <td className="px-5 py-4 text-muted-foreground">{row.seat_number}</td>
+                <td className="px-5 py-4 font-semibold text-foreground">{row.percentage}</td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  );
+}
+
 function ThesisChapters({ chapters }: { chapters: ChapterItem[] }) {
   if (chapters.length === 0) return null;
   return (
