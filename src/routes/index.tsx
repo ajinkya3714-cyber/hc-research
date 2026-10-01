@@ -63,7 +63,7 @@ function splitTags(value: string) {
 
 function AcademicPortfolio() {
   const loaded = Route.useLoaderData() as
-    | { content?: Record<string, string>; bioRows?: any[]; resources?: any[]; publications?: any[]; chapters?: ChapterItem[]; education?: EducationItem[] }
+    | { content?: Record<string, string>; bioRows?: any[]; resources?: any[]; publications?: any[]; chapters?: ChapterItem[]; education?: EducationItem[]; chronology?: ChronologyItem[] }
     | undefined;
   const data = {
     content: loaded?.content ?? {},
@@ -72,6 +72,7 @@ function AcademicPortfolio() {
     publications: loaded?.publications ?? [],
     chapters: loaded?.chapters ?? [],
     education: loaded?.education ?? [],
+    chronology: loaded?.chronology ?? [],
   };
 
   const [menuOpen, setMenuOpen] = useState(false);
@@ -220,6 +221,7 @@ function AcademicPortfolio() {
               </div>
             </div>
             <ThesisChapters chapters={data.chapters} />
+            <BrowneChronology items={data.chronology} />
           </div>
         </section>
 
@@ -383,6 +385,46 @@ function PublicationsSection({ publications }: { publications: PublicationItem[]
 }
 
 type ChapterItem = { id: string; chapter_label: string; title: string; synopsis: string; status: string; url: string };
+
+type ChronologyItem = { id: string; year: string; title: string; category: string; summary: string; connection: string; quote: string };
+
+function BrowneChronology({ items }: { items: ChronologyItem[] }) {
+  const [open, setOpen] = useState<string | null>(null);
+  if (items.length === 0) return null;
+  return (
+    <div className="mt-14">
+      <div className="flex items-center gap-3">
+        <BookOpen className="size-6 text-accent-foreground" />
+        <h3 className="font-serif text-2xl sm:text-3xl">Thomas Browne &amp; the seventeenth century</h3>
+      </div>
+      <p className="mt-3 max-w-2xl text-sm leading-6 text-muted-foreground">A chronology of Browne’s major works set against the intellectual and political history of his age.</p>
+      <ol className="relative mt-10 border-l border-border pl-8 sm:pl-10">
+        {items.map((item) => (
+          <li key={item.id} className="relative pb-10 last:pb-0">
+            <span className="absolute -left-[2.4rem] top-1.5 size-3 rounded-full border-2 border-background bg-accent ring-1 ring-accent sm:-left-[2.9rem]" />
+            <div className="flex flex-wrap items-baseline gap-x-4 gap-y-1">
+              <span className="font-serif text-2xl font-bold text-accent-foreground">{item.year}</span>
+              <span className="text-xs font-bold uppercase tracking-[0.16em] text-muted-foreground">{item.category}</span>
+            </div>
+            <h4 className="mt-2 font-serif text-xl italic leading-snug text-primary">{item.title}</h4>
+            {item.summary && <p className="mt-3 max-w-3xl leading-7 text-muted-foreground">{item.summary}</p>}
+            {item.quote && (
+              <blockquote className="mt-4 max-w-3xl border-l-2 border-accent pl-4 font-serif italic leading-7 text-foreground">“{item.quote}”</blockquote>
+            )}
+            {item.connection && (
+              <>
+                <button onClick={() => setOpen(open === item.id ? null : item.id)} className="mt-4 text-sm font-semibold text-primary underline-offset-4 hover:underline">
+                  {open === item.id ? "Hide research note" : "Research note"}
+                </button>
+                {open === item.id && <p className="mt-3 max-w-3xl border border-border bg-secondary p-4 text-sm leading-6 text-muted-foreground">{item.connection}</p>}
+              </>
+            )}
+          </li>
+        ))}
+      </ol>
+    </div>
+  );
+}
 
 type EducationItem = { id: string; degree: string; board: string; passing_date: string; seat_number: string; percentage: string };
 

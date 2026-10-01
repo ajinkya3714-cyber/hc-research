@@ -43,6 +43,17 @@ export type EducationRow = {
   sort_order: number;
 };
 
+export type ChronologyRow = {
+  id: string;
+  year: string;
+  title: string;
+  category: string;
+  summary: string;
+  connection: string;
+  quote: string;
+  sort_order: number;
+};
+
 export type AdminData = {
   content: { key: string; label: string; value: string; multiline: boolean; sort_order: number }[];
   bioRows: { id: string; term: string; value: string; important: boolean; sort_order: number }[];
@@ -50,6 +61,7 @@ export type AdminData = {
   publications: Publication[];
   chapters: ThesisChapter[];
   education: EducationRow[];
+  chronology: ChronologyRow[];
   messages: { id: string; name: string; email: string; message: string; created_at: string }[];
 };
 
@@ -58,7 +70,7 @@ export const getAdminData = createServerFn({ method: "GET" })
   .handler(async ({ context }): Promise<AdminData> => {
     await assertAdmin(context as any);
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
-    const [content, bio, res, pub, chap, edu, msg] = await Promise.all([
+    const [content, bio, res, pub, chap, edu, chron, msg] = await Promise.all([
       supabaseAdmin.from("site_content").select("key, label, value, multiline, sort_order").order("sort_order"),
       supabaseAdmin.from("bio_rows").select("id, term, value, important, sort_order").order("sort_order"),
       supabaseAdmin.from("resources").select("id, type, title, detail, url, sort_order").order("sort_order"),
@@ -74,6 +86,10 @@ export const getAdminData = createServerFn({ method: "GET" })
         .from("education_qualifications")
         .select("id, degree, board, passing_date, seat_number, percentage, sort_order")
         .order("sort_order"),
+      supabaseAdmin
+        .from("browne_chronology")
+        .select("id, year, title, category, summary, connection, quote, sort_order")
+        .order("sort_order"),
       supabaseAdmin.from("messages").select("id, name, email, message, created_at").order("created_at", { ascending: false }),
     ]);
     return {
@@ -83,8 +99,42 @@ export const getAdminData = createServerFn({ method: "GET" })
       publications: pub.data ?? [],
       chapters: chap.data ?? [],
       education: edu.data ?? [],
+      chronology: chron.data ?? [],
       messages: msg.data ?? [],
     };
+  });
+
+export const saveChronology = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((input: Partial<ChronologyRow> & { title: string; sort_order: number }) => input)
+  .handler(async ({ data, context }) => {
+    await assertAdmin(context as any);
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const payload = {
+      year: data.year ?? "",
+      title: data.title,
+      category: data.category ?? "Major work",
+      summary: data.summary ?? "",
+      connection: data.connection ?? "",
+      quote: data.quote ?? "",
+      sort_order: data.sort_order,
+    };
+    const { error } = data.id
+      ? await supabaseAdmin.from("browne_chronology").update(payload).eq("id", data.id)
+      : await supabaseAdmin.from("browne_chronology").insert(payload);
+    if (error) throw new Error(error.message);
+    return { ok: true };
+  });
+
+export const deleteChronology = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((input: { id: string }) => input)
+  .handler(async ({ data, context }) => {
+    await assertAdmin(context as any);
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const { error } = await supabaseAdmin.from("browne_chronology").delete().eq("id", data.id);
+    if (error) throw new Error(error.message);
+    return { ok: true };
   });
 
 export const saveEducation = createServerFn({ method: "POST" })

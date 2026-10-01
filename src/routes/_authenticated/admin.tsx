@@ -13,6 +13,8 @@ import {
   deleteBioRow,
   deleteChapter,
   deleteEducation,
+  deleteChronology,
+  saveChronology,
   deleteMessage,
   deletePublication,
   deleteResource,
@@ -41,7 +43,7 @@ export const Route = createFileRoute("/_authenticated/admin")({
   component: AdminPage,
 });
 
-const TABS = ["Content", "Bio-data", "Education", "Thesis chapters", "Resources", "Publications", "Messages", "Members"] as const;
+const TABS = ["Content", "Bio-data", "Education", "Thesis chapters", "Chronology", "Resources", "Publications", "Messages", "Members"] as const;
 type Tab = (typeof TABS)[number];
 
 function AdminPage() {
@@ -131,6 +133,7 @@ function AdminPage() {
             {tab === "Bio-data" && <BioPanel data={query.data} onSaved={refresh} />}
             {tab === "Education" && <EducationPanel data={query.data} onSaved={refresh} />}
             {tab === "Thesis chapters" && <ChaptersPanel data={query.data} onSaved={refresh} />}
+            {tab === "Chronology" && <ChronologyPanel data={query.data} onSaved={refresh} />}
             {tab === "Resources" && <ResourcePanel data={query.data} onSaved={refresh} />}
             {tab === "Publications" && <PublicationsPanel data={query.data} onSaved={refresh} />}
             {tab === "Messages" && <MessagesPanel data={query.data} onSaved={refresh} />}
@@ -737,6 +740,82 @@ function EducationPanel({ data, onSaved }: { data: AdminData; onSaved: () => voi
           }}
         >
           <Plus /> Add qualification
+        </Button>
+      </div>
+    </Panel>
+  );
+}
+
+type ChronForm = { year: string; title: string; category: string; summary: string; connection: string; quote: string };
+const emptyChron: ChronForm = { year: "", title: "", category: "Major work", summary: "", connection: "", quote: "" };
+
+function ChronFields({ form, setForm }: { form: ChronForm; setForm: (f: ChronForm) => void }) {
+  return (
+    <div className="grid gap-3 sm:grid-cols-2">
+      <input className={inputClass} placeholder="Year (e.g. 1642)" value={form.year} onChange={(e) => setForm({ ...form, year: e.target.value })} />
+      <input className={inputClass} placeholder="Category (e.g. Major work, Historical context)" value={form.category} onChange={(e) => setForm({ ...form, category: e.target.value })} />
+      <input className={`${inputClass} sm:col-span-2`} placeholder="Title" value={form.title} onChange={(e) => setForm({ ...form, title: e.target.value })} />
+      <textarea className={`${inputClass} sm:col-span-2`} rows={3} placeholder="Summary" value={form.summary} onChange={(e) => setForm({ ...form, summary: e.target.value })} />
+      <textarea className={`${inputClass} sm:col-span-2`} rows={2} placeholder="Quotation (optional)" value={form.quote} onChange={(e) => setForm({ ...form, quote: e.target.value })} />
+      <textarea className={`${inputClass} sm:col-span-2`} rows={2} placeholder="Research note — link to your dissertation (optional)" value={form.connection} onChange={(e) => setForm({ ...form, connection: e.target.value })} />
+    </div>
+  );
+}
+
+function ChronEditor({ row, onSave, onDelete }: { row: AdminData["chronology"][number]; onSave: (f: ChronForm) => Promise<void>; onDelete: () => Promise<void> }) {
+  const initial: ChronForm = { year: row.year, title: row.title, category: row.category, summary: row.summary, connection: row.connection, quote: row.quote };
+  const [form, setForm] = useState<ChronForm>(initial);
+  const changed = JSON.stringify(form) !== JSON.stringify(initial);
+  return (
+    <div className="border border-border p-4">
+      <ChronFields form={form} setForm={setForm} />
+      <div className="mt-3 flex gap-2">
+        <Button size="sm" disabled={!changed || !form.title} onClick={() => onSave(form)}>Save</Button>
+        <Button size="sm" variant="ghost" onClick={onDelete}><Trash2 className="size-4" /> Delete</Button>
+      </div>
+    </div>
+  );
+}
+
+function ChronologyPanel({ data, onSaved }: { data: AdminData; onSaved: () => void }) {
+  const save = useServerFn(saveChronology);
+  const remove = useServerFn(deleteChronology);
+  const [draft, setDraft] = useState<ChronForm>(emptyChron);
+  return (
+    <Panel title="Thomas Browne chronology" description="Timeline entries shown in the Research section, in list order.">
+      <div className="grid gap-4">
+        {data.chronology.map((row) => (
+          <ChronEditor
+            key={row.id}
+            row={row}
+            onSave={async (patch) => {
+              await save({ data: { id: row.id, sort_order: row.sort_order, ...patch } });
+              toast.success("Entry updated.");
+              onSaved();
+            }}
+            onDelete={async () => {
+              await remove({ data: { id: row.id } });
+              toast.success("Entry deleted.");
+              onSaved();
+            }}
+          />
+        ))}
+      </div>
+      <div className="mt-8 border-t border-border pt-6">
+        <p className="mb-3 text-sm font-semibold text-primary">Add an entry</p>
+        <ChronFields form={draft} setForm={setDraft} />
+        <Button
+          className="mt-4"
+          disabled={!draft.title}
+          onClick={async () => {
+            const max = data.chronology.reduce((m, r) => Math.max(m, r.sort_order), 0);
+            await save({ data: { ...draft, sort_order: max + 1 } });
+            setDraft(emptyChron);
+            toast.success("Entry added.");
+            onSaved();
+          }}
+        >
+          <Plus /> Add entry
         </Button>
       </div>
     </Panel>
