@@ -203,6 +203,7 @@ function AcademicPortfolio() {
             </div>
           </div>
           <EducationTable education={data.education} />
+          <div className="mx-auto max-w-7xl px-5 sm:px-8 lg:px-12"><BrowneChronology items={data.chronology} /></div>
         </section>
 
         <section id="research" className="scroll-mt-18 bg-secondary py-20 sm:py-28">
@@ -221,7 +222,6 @@ function AcademicPortfolio() {
               </div>
             </div>
             <ThesisChapters chapters={data.chapters} />
-            <BrowneChronology items={data.chronology} />
           </div>
         </section>
 
