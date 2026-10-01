@@ -38,6 +38,42 @@ export type Database = {
         }
         Relationships: []
       }
+      browne_chronology: {
+        Row: {
+          category: string
+          connection: string
+          created_at: string
+          id: string
+          quote: string
+          sort_order: number
+          summary: string
+          title: string
+          year: string
+        }
+        Insert: {
+          category?: string
+          connection?: string
+          created_at?: string
+          id?: string
+          quote?: string
+          sort_order?: number
+          summary?: string
+          title: string
+          year?: string
+        }
+        Update: {
+          category?: string
+          connection?: string
+          created_at?: string
+          id?: string
+          quote?: string
+          sort_order?: number
+          summary?: string
+          title?: string
+          year?: string
+        }
+        Relationships: []
+      }
       education_qualifications: {
         Row: {
           board: string
