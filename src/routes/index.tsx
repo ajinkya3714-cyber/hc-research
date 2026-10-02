@@ -425,11 +425,77 @@ function BrowneChronology({ items }: { items: ChronologyItem[] }) {
                   <blockquote className="mt-4 border-l-2 border-accent pl-4 font-serif italic leading-7 text-foreground">“{item.quote}”</blockquote>
                 )}
                 {item.connection && <p className="mt-4 border border-border bg-secondary p-4 text-sm leading-6 text-muted-foreground">{item.connection}</p>}
+                <AskContext entryId={item.id} />
               </div>
             )}
           </li>
         ))}
       </ol>
+    </div>
+  );
+}
+
+function AskContext({ entryId }: { entryId: string }) {
+  const [question, setQuestion] = useState("");
+  const [answer, setAnswer] = useState("");
+  const [error, setError] = useState("");
+  const [loading, setLoading] = useState(false);
+
+  async function ask(event: FormEvent) {
+    event.preventDefault();
+    if (loading || question.trim().length < 3) return;
+    setLoading(true);
+    setAnswer("");
+    setError("");
+    try {
+      const res = await fetch("/api/explain", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ entryId, question }),
+      });
+      if (!res.ok || !res.body) {
+        setError((await res.text()) || "Sorry, something went wrong.");
+        return;
+      }
+      const reader = res.body.getReader();
+      const decoder = new TextDecoder();
+      let text = "";
+      for (;;) {
+        const { done, value } = await reader.read();
+        if (done) break;
+        text += decoder.decode(value, { stream: true });
+        const idx = text.indexOf("\u0000ERR:");
+        if (idx >= 0) {
+          setAnswer(text.slice(0, idx).trim());
+          setError(text.slice(idx + 5));
+        } else setAnswer(text);
+      }
+    } catch {
+      setError("Sorry, something went wrong. Please try again.");
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  return (
+    <div className="mt-5 border border-border bg-card p-4">
+      <p className="text-xs font-bold uppercase tracking-[0.16em] text-muted-foreground">Ask about the historical context</p>
+      <form onSubmit={ask} className="mt-3 flex flex-col gap-2 sm:flex-row">
+        <input
+          value={question}
+          onChange={(e) => setQuestion(e.target.value)}
+          maxLength={500}
+          placeholder="e.g. Why was this work controversial at the time?"
+          className="min-w-0 flex-1 border border-input bg-background px-3 py-2 text-sm outline-none focus:border-primary"
+        />
+        <Button type="submit" size="sm" disabled={loading || question.trim().length < 3}>
+          {loading ? "Thinking…" : "Explain"}
+        </Button>
+      </form>
+      {loading && !answer && <p className="mt-3 text-sm italic text-muted-foreground">Consulting the archive…</p>}
+      {answer && <p className="mt-3 whitespace-pre-line text-sm leading-7 text-foreground">{answer}</p>}
+      {error && <p className="mt-3 text-sm text-destructive">{error}</p>}
+      {answer && !loading && <p className="mt-2 text-xs text-muted-foreground">AI-generated explanation — verify against scholarly sources.</p>}
     </div>
   );
 }
