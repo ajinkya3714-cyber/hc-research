@@ -425,6 +425,7 @@ function BrowneChronology({ items }: { items: ChronologyItem[] }) {
                   <blockquote className="mt-4 border-l-2 border-accent pl-4 font-serif italic leading-7 text-foreground">“{item.quote}”</blockquote>
                 )}
                 {item.connection && <p className="mt-4 border border-border bg-secondary p-4 text-sm leading-6 text-muted-foreground">{item.connection}</p>}
+                <AskContext entryId={item.id} />
               </div>
             )}
           </li>
