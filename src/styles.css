@@ -19,8 +19,8 @@
  */
 
 @theme inline {
-  --font-sans: "Source Sans 3", sans-serif;
-  --font-serif: "Libre Baskerville", serif;
+  --font-sans: "Plus Jakarta Sans", system-ui, sans-serif;
+  --font-serif: "EB Garamond", Georgia, serif;
   --radius-sm: calc(var(--radius) - 4px);
   --radius-md: calc(var(--radius) - 2px);
   --radius-lg: var(--radius);
@@ -149,6 +149,14 @@
     font-family: var(--font-sans);
     letter-spacing: 0;
     text-rendering: optimizeLegibility;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+
+  .font-serif {
+    font-feature-settings: "liga", "dlig", "onum";
+    letter-spacing: -0.005em;
+    font-size-adjust: 0.46;
   }
 
   html { scroll-behavior: smooth; }
