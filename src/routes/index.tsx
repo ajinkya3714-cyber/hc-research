@@ -251,24 +251,32 @@ function AcademicPortfolio() {
               <div><SectionLabel number="04">Resources &amp; Portfolio</SectionLabel><h2 className="mt-5 font-serif text-3xl sm:text-4xl">Materials for students &amp; scholars</h2></div>
               <p className="max-w-md text-sm leading-6 text-muted-foreground">{t("resources_intro", "Selected guides, course materials, and working notes from teaching and research.")}</p>
             </div>
-            <div className="mt-10 grid gap-px border border-border bg-border md:grid-cols-3">
-              {data.resources.map((resource, index) => (
-                <article key={resource.id} className="group flex min-h-72 flex-col bg-card p-7 sm:p-8">
-                  <div className="flex items-start justify-between"><span className="grid size-11 place-items-center bg-secondary text-primary"><FileText className="size-5" /></span><span className="font-serif text-sm text-muted-foreground">{String(index + 1).padStart(2, "0")}</span></div>
-                  <p className="mt-8 text-xs font-bold uppercase tracking-[0.16em] text-accent-foreground">{resource.type}</p>
-                  <h3 className="mt-3 font-serif text-xl leading-snug">{resource.title}</h3>
-                  <div className="mt-auto flex items-center justify-between pt-7">
-                    <span className="text-xs text-muted-foreground">{resource.detail}</span>
-                    {resource.url ? (
-                      <Button variant="ghost" size="icon" aria-label={`Download ${resource.title}`} asChild>
-                        <a href={resource.url} target="_blank" rel="noreferrer"><Download /></a>
-                      </Button>
-                    ) : (
-                      <Button variant="ghost" size="icon" aria-label={`Download ${resource.title}`} onClick={() => downloadPlaceholder(`${resource.title.replaceAll(" ", "-")}.txt`, resource.title)}><Download /></Button>
-                    )}
-                  </div>
-                </article>
-              ))}
+            <div className="mt-10 grid grid-cols-2 gap-4 sm:gap-5 lg:grid-cols-4">
+              {data.resources.map((resource, index) => {
+                const title = resource.title || resource.type || "Untitled";
+                const label = resource.title ? resource.type : "Primary text";
+                const inner = (
+                  <>
+                    <span aria-hidden className="pointer-events-none absolute -right-3 -top-6 font-serif text-8xl font-bold text-primary/5 transition-colors group-hover:text-accent/15">{String(index + 1).padStart(2, "0")}</span>
+                    <span className="absolute inset-x-0 top-0 h-1 origin-left scale-x-0 bg-accent transition-transform duration-300 group-hover:scale-x-100" />
+                    <span className="grid size-10 place-items-center rounded-md bg-primary text-primary-foreground shadow-sm"><FileText className="size-5" /></span>
+                    <div className="relative mt-auto">
+                      {label && <p className="text-[10px] font-bold uppercase tracking-[0.16em] text-accent-foreground">{label}</p>}
+                      <h3 className="mt-1.5 line-clamp-3 font-serif text-base italic leading-snug text-primary sm:text-lg">{title}</h3>
+                      <div className="mt-3 flex items-center justify-between gap-2 border-t border-border pt-3">
+                        <span className="truncate text-[11px] text-muted-foreground">{resource.detail || "Document"}</span>
+                        <span className="grid size-7 shrink-0 place-items-center rounded-full bg-secondary text-primary transition-colors group-hover:bg-accent group-hover:text-accent-foreground"><Download className="size-3.5" /></span>
+                      </div>
+                    </div>
+                  </>
+                );
+                const cls = "group relative flex aspect-square flex-col overflow-hidden rounded-xl border border-border bg-card p-4 text-left shadow-sm transition-all duration-300 hover:-translate-y-1 hover:border-accent hover:shadow-lg sm:p-5";
+                return resource.url ? (
+                  <a key={resource.id} href={resource.url} target="_blank" rel="noreferrer" aria-label={`Open ${title}`} className={cls}>{inner}</a>
+                ) : (
+                  <button key={resource.id} type="button" aria-label={`Download ${title}`} onClick={() => downloadPlaceholder(`${title.replaceAll(" ", "-")}.txt`, title)} className={cls}>{inner}</button>
+                );
+              })}
             </div>
           </div>
         </section>
