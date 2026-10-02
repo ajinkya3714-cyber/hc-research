@@ -415,17 +415,17 @@ function BrowneChronology({ items }: { items: ChronologyItem[] }) {
               <span className="text-xs font-bold uppercase tracking-[0.16em] text-muted-foreground">{item.category}</span>
             </div>
             <h4 className="mt-2 font-serif text-xl italic leading-snug text-primary">{item.title}</h4>
-            {item.summary && <p className="mt-3 max-w-3xl leading-7 text-muted-foreground">{item.summary}</p>}
-            {item.quote && (
-              <blockquote className="mt-4 max-w-3xl border-l-2 border-accent pl-4 font-serif italic leading-7 text-foreground">“{item.quote}”</blockquote>
-            )}
-            {item.connection && (
-              <>
-                <button onClick={() => setOpen(open === item.id ? null : item.id)} className="mt-4 text-sm font-semibold text-primary underline-offset-4 hover:underline">
-                  {open === item.id ? "Hide research note" : "Research note"}
-                </button>
-                {open === item.id && <p className="mt-3 max-w-3xl border border-border bg-secondary p-4 text-sm leading-6 text-muted-foreground">{item.connection}</p>}
-              </>
+            <button onClick={() => setOpen(open === item.id ? null : item.id)} className="mt-4 text-sm font-semibold text-primary underline-offset-4 hover:underline">
+              {open === item.id ? "Hide details" : "Read details"}
+            </button>
+            {open === item.id && (
+              <div className="mt-3 max-w-3xl">
+                {item.summary && <p className="leading-7 text-muted-foreground">{item.summary}</p>}
+                {item.quote && (
+                  <blockquote className="mt-4 border-l-2 border-accent pl-4 font-serif italic leading-7 text-foreground">“{item.quote}”</blockquote>
+                )}
+                {item.connection && <p className="mt-4 border border-border bg-secondary p-4 text-sm leading-6 text-muted-foreground">{item.connection}</p>}
+              </div>
             )}
           </li>
         ))}
